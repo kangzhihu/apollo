@@ -109,6 +109,12 @@ public class AdminServiceAPI {
       return restTemplate.get(env, "apps/{appId}/namespaces/publish_info", typeReference, appId).getBody();
     }
 
+    public List<NamespaceDTO> getAppNamespaceAssociatedNamespace(Env env, String appId, String namespaceName) {
+      NamespaceDTO[] namespaceDTOs = restTemplate.get(env, "/apps/{appId}/appnamespaces/{namespaceName}/associated-namespace",
+                                                      NamespaceDTO[].class, appId, namespaceName);
+      return Arrays.asList(namespaceDTOs);
+    }
+
   }
 
   @Service

@@ -18,12 +18,15 @@ import com.ctrip.framework.apollo.common.utils.BeanUtils;
 import com.ctrip.framework.apollo.core.ConfigConsts;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -128,12 +131,37 @@ public class NamespaceService {
     return namespaces;
   }
 
-  public List<Namespace> findByAppIdAndNamespaceName(String appId, String namespaceName) {
-    return namespaceRepository.findByAppIdAndNamespaceName(appId, namespaceName);
+  public List<Namespace> findByAppIdAndNamespaceName(String appId, String namespaceName, boolean filterChildNamespace) {
+    List<Namespace> namespaces = namespaceRepository.findByAppIdAndNamespaceName(appId, namespaceName);
+    if (!filterChildNamespace) {
+      return namespaces;
+    }
+
+    return filterChildNamespace(namespaces);
+  }
+
+  private List<Namespace> filterChildNamespace(List<Namespace> source) {
+    List<Namespace> result = new LinkedList<>();
+    for (Namespace namespace: source) {
+      if (!isChildNamespace(namespace)) {
+        result.add(namespace);
+      }
+    }
+
+    return result;
+  }
+
+  public List<Namespace> findByNamespaceName(String namespaceName, boolean filterChildNamespace) {
+    List<Namespace> namespaces = namespaceRepository.findByNamespaceName(namespaceName);
+    if (!filterChildNamespace) {
+      return namespaces;
+    }
+
+    return filterChildNamespace(namespaces);
   }
 
   public Namespace findChildNamespace(String appId, String parentClusterName, String namespaceName) {
-    List<Namespace> namespaces = findByAppIdAndNamespaceName(appId, namespaceName);
+    List<Namespace> namespaces = findByAppIdAndNamespaceName(appId, namespaceName, false);
     if (CollectionUtils.isEmpty(namespaces) || namespaces.size() == 1) {
       return null;
     }

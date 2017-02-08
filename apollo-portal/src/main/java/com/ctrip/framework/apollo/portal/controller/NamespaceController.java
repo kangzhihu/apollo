@@ -45,7 +45,7 @@ import static com.ctrip.framework.apollo.common.utils.RequestPrecondition.checkM
 @RestController
 public class NamespaceController {
 
-  Logger logger = LoggerFactory.getLogger(NamespaceController.class);
+  private static final Logger logger = LoggerFactory.getLogger(NamespaceController.class);
 
   @Autowired
   private AppService appService;
@@ -130,7 +130,7 @@ public class NamespaceController {
     return ResponseEntity.ok().build();
   }
 
-  @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
+  @PreAuthorize(value = "@permissionValidator.hasDeleteNamespacePermission(#appId)")
   @RequestMapping(value = "/apps/{appId}/envs/{env}/clusters/{clusterName}/namespaces/{namespaceName:.+}", method = RequestMethod.DELETE)
   public ResponseEntity<Void> deleteNamespace(@PathVariable String appId, @PathVariable String env,
                                               @PathVariable String clusterName, @PathVariable String namespaceName) {
@@ -181,6 +181,13 @@ public class NamespaceController {
   @RequestMapping(value = "/apps/{appId}/namespaces/publish_info", method = RequestMethod.GET)
   public Map<String, Map<String, Boolean>> getNamespacesPublishInfo(@PathVariable String appId) {
     return namespaceService.getNamespacesPublishInfo(appId);
+  }
+
+  @RequestMapping(value = "/apps/{appId}/envs/{env}/appnamespaces/{namespaceName}/associated-namespace", method = RequestMethod.GET)
+  public List<NamespaceDTO> getAppNamespaceAssociatedNamespace(@PathVariable String appId, @PathVariable String env,
+                                                               @PathVariable String namespaceName) {
+    return namespaceService.getAppNamespaceAssociatedNamespace(Env.fromString(env), appId, namespaceName);
+
   }
 
 }

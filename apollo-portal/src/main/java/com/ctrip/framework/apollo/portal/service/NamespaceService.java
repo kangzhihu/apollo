@@ -1,6 +1,7 @@
 package com.ctrip.framework.apollo.portal.service;
 
 import com.ctrip.framework.apollo.portal.component.config.PortalConfig;
+
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 
@@ -74,11 +75,26 @@ public class NamespaceService {
       throw new BadRequestException("private namespace can not be deleted");
     }
 
+    AppNamespace publicAppNamespace = appNamespaceService.findPublicAppNamespace(namespaceName);
+    if (publicAppNamespace != null) {
+      String publicAppId = publicAppNamespace.getAppId();
+
+      //delete public namespace
+      if (Objects.equals(appId, publicAppId)) {
+        //check public namespace has not associated namespace
+        List<NamespaceDTO> associatedNamespaces = getAppNamespaceAssociatedNamespace(env, appId, namespaceName);
+        for (NamespaceDTO namespace : associatedNamespaces) {
+          if (!Objects.equals(publicAppId, namespace.getAppId())) {
+            throw new BadRequestException("Can not delete public namespace which has associated namespaces.");
+          }
+        }
+      }
+    }
+
     String operator = userInfoHolder.getUser().getUserId();
 
     namespaceAPI.deleteNamespace(env, appId, clusterName, namespaceName, operator);
   }
-
 
   public NamespaceDTO loadNamespaceBaseInfo(String appId, Env env, String clusterName, String namespaceName) {
     NamespaceDTO namespace = namespaceAPI.loadNamespace(appId, env, clusterName, namespaceName);
@@ -115,6 +131,10 @@ public class NamespaceService {
     return namespaceBOs;
   }
 
+  public List<NamespaceDTO> getAppNamespaceAssociatedNamespace(Env env, String appId, String namespaceName) {
+    return namespaceAPI.getAppNamespaceAssociatedNamespace(env, appId, namespaceName);
+  }
+
   public NamespaceBO loadNamespaceBO(String appId, Env env, String clusterName, String namespaceName) {
     NamespaceDTO namespace = namespaceAPI.loadNamespace(appId, env, clusterName, namespaceName);
     if (namespace == null) {
@@ -125,8 +145,9 @@ public class NamespaceService {
 
   public NamespaceBO findPublicNamespaceForAssociatedNamespace(Env env, String appId,
                                                                String clusterName, String namespaceName) {
-    NamespaceDTO namespace = namespaceAPI.findPublicNamespaceForAssociatedNamespace(env, appId, clusterName, namespaceName);
-
+    NamespaceDTO
+        namespace =
+        namespaceAPI.findPublicNamespaceForAssociatedNamespace(env, appId, clusterName, namespaceName);
 
     return transformNamespace2BO(env, namespace);
   }
@@ -135,7 +156,7 @@ public class NamespaceService {
     Map<String, Map<String, Boolean>> result = Maps.newHashMap();
 
     Set<Env> envs = portalConfig.publishTipsSupportedEnvs();
-    for (Env env: envs) {
+    for (Env env : envs) {
       if (portalSettings.isEnvActive(env)) {
         result.put(env.toString(), namespaceAPI.getNamespacePublishInfo(env, appId));
       }

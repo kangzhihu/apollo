@@ -8,6 +8,7 @@ import com.ctrip.framework.apollo.biz.entity.Cluster;
 import com.ctrip.framework.apollo.biz.entity.Namespace;
 import com.ctrip.framework.apollo.biz.repository.AppNamespaceRepository;
 import com.ctrip.framework.apollo.common.entity.AppNamespace;
+import com.ctrip.framework.apollo.common.exception.BadRequestException;
 import com.ctrip.framework.apollo.common.exception.ServiceException;
 import com.ctrip.framework.apollo.common.utils.BeanUtils;
 import com.ctrip.framework.apollo.core.ConfigConsts;
@@ -15,6 +16,8 @@ import com.ctrip.framework.apollo.core.enums.ConfigFileFormat;
 import com.ctrip.framework.apollo.core.utils.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,13 +57,32 @@ public class AppNamespaceService {
     return appNamespaceRepository.findByNameInAndIsPublicTrue(namespaceNames);
   }
 
-  public List<AppNamespace> findPrivateAppNamespace(String appId){
+  public List<AppNamespace> findPrivateAppNamespace(String appId) {
     return appNamespaceRepository.findByAppIdAndIsPublic(appId, false);
   }
 
-  public AppNamespace findOne(String appId, String namespaceName){
-    Preconditions.checkArgument(!StringUtils.isContainEmpty(appId, namespaceName), "appId or Namespace must not be null");
+  public AppNamespace findOne(String appId, String namespaceName) {
+    Preconditions
+        .checkArgument(!StringUtils.isContainEmpty(appId, namespaceName), "appId or Namespace must not be null");
     return appNamespaceRepository.findByAppIdAndName(appId, namespaceName);
+  }
+
+  public List<Namespace> findAssociatedNamespace(String appId, String namespaceName) {
+    AppNamespace appNamespace = findOne(appId, namespaceName);
+    if (appNamespace == null) {
+      appNamespace = findPublicNamespaceByName(namespaceName);
+    }
+
+    if (appNamespace == null) {
+      throw new BadRequestException(
+          String.format("AppNamespace not existed. AppId = %s, NamespaceName = %s", appId, namespaceName));
+    }
+
+    if (!appNamespace.isPublic()) {
+      return namespaceService.findByAppIdAndNamespaceName(appId, namespaceName, true);
+    }
+
+    return namespaceService.findByNamespaceName(namespaceName, true);
   }
 
   public List<AppNamespace> findByAppIdAndNamespaces(String appId, Set<String> namespaceNames) {
@@ -90,7 +112,7 @@ public class AppNamespaceService {
   }
 
   @Transactional
-  public AppNamespace createAppNamespace(AppNamespace appNamespace){
+  public AppNamespace createAppNamespace(AppNamespace appNamespace) {
     String createBy = appNamespace.getDataChangeCreatedBy();
     if (!isAppNamespaceNameUnique(appNamespace.getAppId(), appNamespace.getName())) {
       throw new ServiceException("appnamespace not unique");
@@ -109,12 +131,13 @@ public class AppNamespaceService {
     return appNamespace;
   }
 
-  public AppNamespace update(AppNamespace appNamespace){
+  public AppNamespace update(AppNamespace appNamespace) {
     AppNamespace managedNs = appNamespaceRepository.findByAppIdAndName(appNamespace.getAppId(), appNamespace.getName());
     BeanUtils.copyEntityProperties(appNamespace, managedNs);
     managedNs = appNamespaceRepository.save(managedNs);
 
-    auditService.audit(AppNamespace.class.getSimpleName(), managedNs.getId(), Audit.OP.UPDATE, managedNs.getDataChangeLastModifiedBy());
+    auditService.audit(AppNamespace.class.getSimpleName(), managedNs.getId(), Audit.OP.UPDATE,
+                       managedNs.getDataChangeLastModifiedBy());
 
     return managedNs;
   }
