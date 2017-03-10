@@ -3,6 +3,7 @@ package com.ctrip.framework.apollo.portal.component.config;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -32,7 +34,6 @@ public class PortalConfig extends RefreshableConfig {
 
   @Autowired
   private PortalDBPropertySource portalDBPropertySource;
-
 
   @Override
   public List<RefreshablePropertySource> getRefreshablePropertySources() {
@@ -159,6 +160,22 @@ public class PortalConfig extends RefreshableConfig {
 
   public boolean canAppAdminCreatePrivateNamespace() {
     return getBooleanProperty("admin.createPrivateNamespace.switch", true);
+  }
+
+  public Map<String, String> systemUsers() {
+    String[] sourceUsers = getArrayProperty("system.users", new String[0]);
+
+    Map<String, String> users = Maps.newHashMap();
+
+    for (String sourceUser: sourceUsers) {
+      String[] userInfo = sourceUser.split(":");
+      if (userInfo.length != 2) {
+        throw new IllegalStateException("System users configuration formatter must be: username1:password1,username2:password2, ...");
+      }
+      users.put(userInfo[0], userInfo[1]);
+    }
+
+    return users;
   }
 
   /***

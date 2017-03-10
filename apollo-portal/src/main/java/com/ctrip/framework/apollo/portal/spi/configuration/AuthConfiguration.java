@@ -15,6 +15,9 @@ import com.ctrip.framework.apollo.portal.spi.defaultimpl.DefaultLogoutHandler;
 import com.ctrip.framework.apollo.portal.spi.defaultimpl.DefaultSsoHeartbeatHandler;
 import com.ctrip.framework.apollo.portal.spi.defaultimpl.DefaultUserInfoHolder;
 import com.ctrip.framework.apollo.portal.spi.defaultimpl.DefaultUserService;
+import com.ctrip.framework.apollo.portal.spi.springsecurity.SpringSecurityLogoutHandler;
+import com.ctrip.framework.apollo.portal.spi.springsecurity.SpringSecurityUserInfoHolder;
+import com.ctrip.framework.apollo.portal.spi.springsecurity.SpringSecurityUserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -186,20 +189,20 @@ public class AuthConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(UserInfoHolder.class)
-    public DefaultUserInfoHolder notCtripUserInfoHolder() {
-      return new DefaultUserInfoHolder();
+    public UserInfoHolder notCtripUserInfoHolder() {
+      return new SpringSecurityUserInfoHolder();
     }
 
     @Bean
     @ConditionalOnMissingBean(LogoutHandler.class)
-    public DefaultLogoutHandler logoutHandler() {
-      return new DefaultLogoutHandler();
+    public LogoutHandler logoutHandler() {
+      return new SpringSecurityLogoutHandler();
     }
 
     @Bean
     @ConditionalOnMissingBean(UserService.class)
     public UserService defaultUserService() {
-      return new DefaultUserService();
+      return new SpringSecurityUserService();
     }
   }
 
