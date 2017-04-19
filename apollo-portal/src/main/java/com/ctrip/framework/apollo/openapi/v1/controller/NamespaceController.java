@@ -19,6 +19,7 @@ import com.ctrip.framework.apollo.portal.listener.AppNamespaceCreationEvent;
 import com.ctrip.framework.apollo.portal.service.AppNamespaceService;
 import com.ctrip.framework.apollo.portal.service.NamespaceLockService;
 import com.ctrip.framework.apollo.portal.service.NamespaceService;
+import com.ctrip.framework.apollo.portal.spi.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +47,8 @@ public class NamespaceController {
   private AppNamespaceService appNamespaceService;
   @Autowired
   private ApplicationEventPublisher publisher;
+  @Autowired
+  private UserService userService;
 
 
   @PreAuthorize(value = "@consumerPermissionValidator.hasCreateNamespacePermission(#request, #appId)")
@@ -68,6 +71,11 @@ public class NamespaceController {
 
     if (!ConfigFileFormat.isValidFormat(appNamespaceDTO.getFormat())) {
       throw new BadRequestException(String.format("Invalid namespace format. format = %s", appNamespaceDTO.getFormat()));
+    }
+
+    String operator = appNamespaceDTO.getDataChangeCreatedBy();
+    if (userService.findByUserId(operator) == null) {
+      throw new BadRequestException(String.format("Illegal user. user = %s", operator));
     }
 
     AppNamespace appNamespace = BeanUtils.transfrom(AppNamespace.class, appNamespaceDTO);
