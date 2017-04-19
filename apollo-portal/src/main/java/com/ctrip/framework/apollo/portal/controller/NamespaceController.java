@@ -96,18 +96,18 @@ public class NamespaceController {
                                               @RequestBody List<NamespaceCreationModel> models) {
 
     checkModel(!CollectionUtils.isEmpty(models));
-    roleInitializationService.initNamespaceRoles(appId, models.get(0).getNamespace().getNamespaceName());
 
-    String namespaceName = null;
+    String namespaceName = models.get(0).getNamespace().getNamespaceName();
+    String operator = userInfoHolder.getUser().getUserId();
+
+    roleInitializationService.initNamespaceRoles(appId, namespaceName, operator);
+
     for (NamespaceCreationModel model : models) {
       NamespaceDTO namespace = model.getNamespace();
-      namespaceName = namespace.getNamespaceName();
-      RequestPrecondition
-              .checkArgumentsNotEmpty(model.getEnv(), namespace.getAppId(), namespace.getClusterName(),
-                      namespace.getNamespaceName());
+      RequestPrecondition.checkArgumentsNotEmpty(model.getEnv(), namespace.getAppId(),
+                                                 namespace.getClusterName(), namespace.getNamespaceName());
 
       try {
-        // TODO: 16/6/17 某些环境创建失败,统一处理这种场景
         namespaceService.createNamespace(Env.valueOf(model.getEnv()), namespace);
       } catch (Exception e) {
         logger.error("create namespace fail.", e);

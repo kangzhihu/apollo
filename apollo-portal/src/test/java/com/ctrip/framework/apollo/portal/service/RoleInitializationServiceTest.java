@@ -76,7 +76,7 @@ public class RoleInitializationServiceTest extends AbstractUnitTest {
     when(rolePermissionService.findRoleByRoleName(releaseNamespaceRoleName)).
         thenReturn(mockRole(releaseNamespaceRoleName));
 
-    roleInitializationService.initNamespaceRoles(APP_ID, NAMESPACE);
+    roleInitializationService.initNamespaceRoles(APP_ID, NAMESPACE, CURRENT_USER);
 
     verify(rolePermissionService, times(2)).findRoleByRoleName(anyString());
     verify(rolePermissionService, times(0)).createPermission(any());
@@ -97,7 +97,7 @@ public class RoleInitializationServiceTest extends AbstractUnitTest {
     when(userInfoHolder.getUser()).thenReturn(mockUser());
     when(rolePermissionService.createPermission(any())).thenReturn(mockPermission());
 
-    roleInitializationService.initNamespaceRoles(APP_ID, NAMESPACE);
+    roleInitializationService.initNamespaceRoles(APP_ID, NAMESPACE, CURRENT_USER);
 
     verify(rolePermissionService, times(2)).findRoleByRoleName(anyString());
     verify(rolePermissionService, times(2)).createPermission(any());
@@ -118,7 +118,7 @@ public class RoleInitializationServiceTest extends AbstractUnitTest {
     when(userInfoHolder.getUser()).thenReturn(mockUser());
     when(rolePermissionService.createPermission(any())).thenReturn(mockPermission());
 
-    roleInitializationService.initNamespaceRoles(APP_ID, NAMESPACE);
+    roleInitializationService.initNamespaceRoles(APP_ID, NAMESPACE, CURRENT_USER);
 
     verify(rolePermissionService, times(2)).findRoleByRoleName(anyString());
     verify(rolePermissionService, times(1)).createPermission(any());
