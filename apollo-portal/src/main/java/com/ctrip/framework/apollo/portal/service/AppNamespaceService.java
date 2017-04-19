@@ -105,7 +105,7 @@ public class AppNamespaceService {
 
     AppNamespace createdAppNamespace = appNamespaceRepository.save(appNamespace);
 
-    roleInitializationService.initNamespaceRoles(appNamespace.getAppId(), appNamespace.getName());
+    roleInitializationService.initNamespaceRoles(appNamespace.getAppId(), appNamespace.getName(), operator);
 
     return createdAppNamespace;
   }
