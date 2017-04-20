@@ -5,7 +5,6 @@ import com.ctrip.framework.apollo.common.dto.NamespaceDTO;
 import com.ctrip.framework.apollo.common.dto.NamespaceLockDTO;
 import com.ctrip.framework.apollo.common.entity.AppNamespace;
 import com.ctrip.framework.apollo.common.exception.BadRequestException;
-import com.ctrip.framework.apollo.common.utils.BeanUtils;
 import com.ctrip.framework.apollo.common.utils.InputValidator;
 import com.ctrip.framework.apollo.common.utils.RequestPrecondition;
 import com.ctrip.framework.apollo.core.enums.ConfigFileFormat;
@@ -52,8 +51,8 @@ public class NamespaceController {
 
   @PreAuthorize(value = "@consumerPermissionValidator.hasCreateNamespacePermission(#request, #appId)")
   @RequestMapping(value = "/openapi/v1/apps/{appId}/appnamespaces", method = RequestMethod.POST)
-  public AppNamespace createNamespace(@PathVariable String appId, @RequestBody OpenAppNamespaceDTO appNamespaceDTO,
-                                      HttpServletRequest request) {
+  public OpenAppNamespaceDTO createNamespace(@PathVariable String appId, @RequestBody OpenAppNamespaceDTO appNamespaceDTO,
+                                         HttpServletRequest request) {
 
     if (!Objects.equals(appId, appNamespaceDTO.getAppId())) {
       throw new BadRequestException(String.format("AppId not equal. AppId in path = %s, AppId in payload = %s", appId,
@@ -77,12 +76,12 @@ public class NamespaceController {
       throw new BadRequestException(String.format("Illegal user. user = %s", operator));
     }
 
-    AppNamespace appNamespace = BeanUtils.transfrom(AppNamespace.class, appNamespaceDTO);
+    AppNamespace appNamespace = OpenApiBeanUtils.transformToAppNamespace(appNamespaceDTO);
     AppNamespace createdAppNamespace = appNamespaceService.createAppNamespaceInLocal(appNamespace);
 
     publisher.publishEvent(new AppNamespaceCreationEvent(createdAppNamespace));
 
-    return createdAppNamespace;
+    return OpenApiBeanUtils.transformToOpenAppNamespaceDTO(createdAppNamespace);
   }
 
   @RequestMapping(value = "/openapi/v1/envs/{env}/apps/{appId}/clusters/{clusterName}/namespaces", method = RequestMethod.GET)
