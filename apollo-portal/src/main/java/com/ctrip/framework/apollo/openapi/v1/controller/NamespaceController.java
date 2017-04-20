@@ -36,7 +36,6 @@ import java.util.Objects;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController("openapiNamespaceController")
-@RequestMapping("/openapi/v1/envs/{env}")
 public class NamespaceController {
 
   @Autowired
@@ -52,7 +51,7 @@ public class NamespaceController {
 
 
   @PreAuthorize(value = "@consumerPermissionValidator.hasCreateNamespacePermission(#request, #appId)")
-  @RequestMapping(value = "/apps/{appId}/appnamespaces", method = RequestMethod.POST)
+  @RequestMapping(value = "/openapi/v1/apps/{appId}/appnamespaces", method = RequestMethod.POST)
   public AppNamespace createNamespace(@PathVariable String appId, @RequestBody OpenAppNamespaceDTO appNamespaceDTO,
                                       HttpServletRequest request) {
 
@@ -86,7 +85,7 @@ public class NamespaceController {
     return createdAppNamespace;
   }
 
-  @RequestMapping(value = "/apps/{appId}/clusters/{clusterName}/namespaces", method = RequestMethod.GET)
+  @RequestMapping(value = "/openapi/v1/envs/{env}/apps/{appId}/clusters/{clusterName}/namespaces", method = RequestMethod.GET)
   public List<OpenNamespaceDTO> findNamespaces(@PathVariable String appId, @PathVariable String env,
                                                @PathVariable String clusterName) {
 
@@ -95,7 +94,7 @@ public class NamespaceController {
             .fromString(env), clusterName));
   }
 
-  @RequestMapping(value = "/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/openapi/v1/envs/{env}/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName:.+}", method = RequestMethod.GET)
   public OpenNamespaceDTO loadNamespace(@PathVariable String appId, @PathVariable String env,
                                         @PathVariable String clusterName, @PathVariable String
                                             namespaceName) {
@@ -107,7 +106,7 @@ public class NamespaceController {
     return OpenApiBeanUtils.transformFromNamespaceBO(namespaceBO);
   }
 
-  @RequestMapping(value = "/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName}/lock", method = RequestMethod.GET)
+  @RequestMapping(value = "/openapi/v1/envs/{env}/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName}/lock", method = RequestMethod.GET)
   public OpenNamespaceLockDTO getNamespaceLock(@PathVariable String appId, @PathVariable String env,
                                                @PathVariable String clusterName, @PathVariable
                                                    String namespaceName) {
