@@ -227,4 +227,7 @@ public class PortalConfig extends RefreshableConfig {
     return getValue("hermes.server.address");
   }
 
+  public boolean closeEntry() {
+    return getBooleanProperty("entry.close", false);
+  }
 }

@@ -20,6 +20,7 @@ public class PageSettingController {
 
     setting.setWikiAddress(portalConfig.wikiAddress());
     setting.setCanAppAdminCreatePrivateNamespace(portalConfig.canAppAdminCreatePrivateNamespace());
+    setting.setCloseEntry(portalConfig.closeEntry());
 
     return setting;
   }

@@ -24,7 +24,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
     ConfigServiceTest.class, PropertyResolverTest.class,
-    NamespaceServiceTest.class, ServiceExceptionTest.class, RolePermissionServiceTest.class,
+    NamespaceServiceTest.class, RolePermissionServiceTest.class,
     AppNamespaceServiceTest.class, RoleInitializationServiceTest.class, FileTextResolverTest.class,
     RetryableRestTemplateTest.class, ConsumerRolePermissionServiceTest.class,
     ConsumerAuthenticationFilterTest.class, ConsumerAuthUtilTest.class, ConsumerServiceTest.class,

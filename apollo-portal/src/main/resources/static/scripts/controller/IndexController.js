@@ -1,8 +1,8 @@
 index_module.controller('IndexController', ['$scope', '$window', 'toastr', 'AppUtil', 'AppService',
-                                            'UserService', 'FavoriteService',
+                                            'UserService', 'FavoriteService', 'CommonService',
                                             IndexController]);
 
-function IndexController($scope, $window, toastr, AppUtil, AppService, UserService, FavoriteService) {
+function IndexController($scope, $window, toastr, AppUtil, AppService, UserService, FavoriteService, CommonService) {
 
     $scope.userId = '';
 
@@ -152,5 +152,9 @@ function IndexController($scope, $window, toastr, AppUtil, AppService, UserServi
 
         getUserFavorites();
     }
+    
+    CommonService.getPageSetting().then(function (result) {
+        $scope.pageSetting = result;
+    })
 
 }

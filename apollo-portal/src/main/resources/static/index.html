@@ -19,18 +19,31 @@
 
 <div id="app-list" class="hidden" ng-controller="IndexController">
 
-    <section class="media create-app-list">
+    <div class="alert alert-info no-radius" ng-show="pageSetting.closeEntry">
+        <div>
+            <strong>公告: 根据公司最新Java规范，配置中心统一使用Qconfig。为落实规范，现关闭Apollo创建应用入口，望周知!</strong>
+        </div>
+        <ul>
+            <li><a target="_blank" href="http://conf.ctripcorp.com/display/ARCH/Qconfig+Quick+Start">Qconfig Quick Start</a></li>
+            <li><a target="_blank" href="http://conf.ctripcorp.com/pages/viewpage.action?pageId=133520821">Qconfig使用手册</a></li>
+            <li><a target="_blank" href="http://qconfig.ctripcorp.com/">Qconfig Portal地址</a></li>
+        </ul>
+    </div>
+
+    <section class="media create-app-list" ng-show="(createdApps && createdApps.length) || !pageSetting.closeEntry">
         <aside class="media-left text-center">
             <h5>我的项目</h5>
         </aside>
         <aside class="media-body">
-            <div class="app-panel col-md-2 text-center" ng-click="goToCreateAppPage()">
+            <div class="app-panel col-md-2 text-center" ng-show="!pageSetting.closeEntry"
+                 ng-click="goToCreateAppPage()">
                 <div href="#" class="thumbnail create-btn hover cursor-pointer">
                     <img src="img/plus-white.png"/>
                     <h5>创建项目</h5>
                 </div>
             </div>
-            <div class="app-panel col-md-2 text-center" ng-repeat="app in createdApps" ng-click="goToAppHomePage(app.appId)">
+            <div class="app-panel col-md-2 text-center" ng-repeat="app in createdApps"
+                 ng-click="goToAppHomePage(app.appId)">
                 <div href="#" class="thumbnail hover cursor-pointer">
                     <h4 ng-bind="app.appId"></h4>
                     <h5 ng-bind="app.name"></h5>

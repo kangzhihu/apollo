@@ -10,7 +10,9 @@ import com.ctrip.framework.apollo.common.http.RichResponseEntity;
 import com.ctrip.framework.apollo.common.utils.InputValidator;
 import com.ctrip.framework.apollo.common.utils.RequestPrecondition;
 import com.ctrip.framework.apollo.core.enums.Env;
+import com.ctrip.framework.apollo.portal.component.PermissionValidator;
 import com.ctrip.framework.apollo.portal.component.PortalSettings;
+import com.ctrip.framework.apollo.portal.component.config.PortalConfig;
 import com.ctrip.framework.apollo.portal.entity.model.AppModel;
 import com.ctrip.framework.apollo.portal.entity.vo.EnvClusterInfo;
 import com.ctrip.framework.apollo.portal.listener.AppCreationEvent;
@@ -25,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -55,6 +58,10 @@ public class AppController {
   private ApplicationEventPublisher publisher;
   @Autowired
   private RolePermissionService rolePermissionService;
+  @Autowired
+  private PortalConfig portalConfig;
+  @Autowired
+  private PermissionValidator permissionValidator;
 
 
   @RequestMapping(value = "", method = RequestMethod.GET)
@@ -74,6 +81,10 @@ public class AppController {
 
   @RequestMapping(value = "", method = RequestMethod.POST)
   public App create(@RequestBody AppModel appModel) {
+
+    if (!permissionValidator.isSuperAdmin() && portalConfig.closeEntry()) {
+      throw new AccessDeniedException("Only Apollo Admin can create app.");
+    }
 
     App app = transformToApp(appModel);
 
