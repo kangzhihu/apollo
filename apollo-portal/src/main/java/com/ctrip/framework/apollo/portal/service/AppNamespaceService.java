@@ -85,6 +85,14 @@ public class AppNamespaceService {
         .append(appNamespace.formatAsEnum() == ConfigFileFormat.Properties ? "" : "." + appNamespace.getFormat());
     appNamespace.setName(appNamespaceName.toString());
 
+    if (appNamespace.getComment() == null) {
+      appNamespace.setComment("");
+    }
+
+    if (!ConfigFileFormat.isValidFormat(appNamespace.getFormat())) {
+     throw new BadRequestException("Invalid namespace format. format must be properties、json、yaml、yml、xml");
+    }
+
     String operator = appNamespace.getDataChangeCreatedBy();
     if (StringUtils.isEmpty(operator)) {
       operator = userInfoHolder.getUser().getUserId();
