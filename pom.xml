@@ -799,6 +799,10 @@
 								<groupId>commons-beanutils</groupId>
 								<artifactId>commons-beanutils-core</artifactId>
 							</exclusion>
+							<exclusion>
+								<groupId>aopalliance</groupId>
+								<artifactId>aopalliance</artifactId>
+							</exclusion>
 						</exclusions>
 					</dependency>
 					<!-- end of eureka -->
