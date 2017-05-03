@@ -19,15 +19,9 @@
 
 <div id="app-list" class="hidden" ng-controller="IndexController">
 
-    <div class="alert alert-info no-radius" ng-show="pageSetting.closeEntry">
-        <div>
-            <strong>公告: 根据公司最新Java规范，配置中心统一使用Qconfig。为落实规范，现关闭Apollo创建应用入口，望周知!</strong>
-        </div>
-        <ul>
-            <li><a target="_blank" href="http://conf.ctripcorp.com/display/ARCH/Qconfig+Quick+Start">Qconfig Quick Start</a></li>
-            <li><a target="_blank" href="http://conf.ctripcorp.com/pages/viewpage.action?pageId=133520821">Qconfig使用手册</a></li>
-            <li><a target="_blank" href="http://qconfig.ctripcorp.com/">Qconfig Portal地址</a></li>
-        </ul>
+    <div class="alert alert-info no-radius" ng-show="pageSetting.showNotice && pageSetting.noticeContent != ''"
+    ng-bind-html="pageSetting.noticeContent">
+
     </div>
 
     <section class="media create-app-list" ng-show="(createdApps && createdApps.length) || !pageSetting.closeEntry">

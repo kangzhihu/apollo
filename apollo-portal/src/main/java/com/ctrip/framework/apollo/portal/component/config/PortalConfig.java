@@ -230,4 +230,12 @@ public class PortalConfig extends RefreshableConfig {
   public boolean closeEntry() {
     return getBooleanProperty("entry.close", false);
   }
+
+  public boolean showNotice() {
+    return getBooleanProperty("notice.switch", false);
+  }
+
+  public String noticeContent() {
+    return getValue("notice.content", "");
+  }
 }
