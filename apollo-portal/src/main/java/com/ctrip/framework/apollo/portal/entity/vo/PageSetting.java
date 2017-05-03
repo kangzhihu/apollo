@@ -5,6 +5,8 @@ public class PageSetting {
   private String wikiAddress;
   private boolean canAppAdminCreatePrivateNamespace;
   private boolean closeEntry;
+  private boolean showNotice;
+  private String noticeContent;
 
   public String getWikiAddress() {
     return wikiAddress;
@@ -28,5 +30,21 @@ public class PageSetting {
 
   public void setCloseEntry(boolean closeEntry) {
     this.closeEntry = closeEntry;
+  }
+
+  public boolean isShowNotice() {
+    return showNotice;
+  }
+
+  public void setShowNotice(boolean showNotice) {
+    this.showNotice = showNotice;
+  }
+
+  public String getNoticeContent() {
+    return noticeContent;
+  }
+
+  public void setNoticeContent(String noticeContent) {
+    this.noticeContent = noticeContent;
   }
 }

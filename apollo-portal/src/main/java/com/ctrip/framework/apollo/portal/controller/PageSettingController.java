@@ -21,6 +21,8 @@ public class PageSettingController {
     setting.setWikiAddress(portalConfig.wikiAddress());
     setting.setCanAppAdminCreatePrivateNamespace(portalConfig.canAppAdminCreatePrivateNamespace());
     setting.setCloseEntry(portalConfig.closeEntry());
+    setting.setShowNotice(portalConfig.showNotice());
+    setting.setNoticeContent(portalConfig.noticeContent());
 
     return setting;
   }
