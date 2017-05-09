@@ -23,7 +23,7 @@ public class BizConfig extends RefreshableConfig {
 //  defaultCacheExpireDuration
   private static final int DEFAULT_APPNAMESPACE_CACHE_REBUILD_INTERVAL = 60; //60s
   private static final int DEFAULT_GRAY_RELEASE_RULE_SCAN_INTERVAL = 60;
-  private static final int DEFAULT_APPNAMESPACE_CACHE_SCAN_INTERVAL = 100; //100ms
+  private static final int DEFAULT_APPNAMESPACE_CACHE_SCAN_INTERVAL = 1000; //1s
   private static final int DEFAULT_RELEASE_MESSAGE_CACHE_SCAN_INTERVAL = 100; //100ms
   static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH = 500;
   private static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI = 100;//100ms
