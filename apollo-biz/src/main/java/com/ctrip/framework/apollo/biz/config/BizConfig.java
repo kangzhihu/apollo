@@ -20,6 +20,16 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class BizConfig extends RefreshableConfig {
+//  defaultCacheExpireDuration
+  private static final int DEFAULT_APPNAMESPACE_CACHE_REBUILD_INTERVAL = 60; //60s
+  private static final int DEFAULT_GRAY_RELEASE_RULE_SCAN_INTERVAL = 60;
+  private static final int DEFAULT_APPNAMESPACE_CACHE_SCAN_INTERVAL = 100; //100ms
+  private static final int DEFAULT_RELEASE_MESSAGE_CACHE_SCAN_INTERVAL = 100; //100ms
+  static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH = 500;
+  private static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI = 100;//100ms
+  private static final int DEFAULT_CONFIG_CACHE_SIZE = 4000;
+  private static final int DEFAULT_CONFIG_CACHE_EXPIRE_DURATION = 300;//5min
+
 
   private Gson gson = new Gson();
   private static final Type namespaceValueLengthOverrideTypeReference =
@@ -44,8 +54,8 @@ public class BizConfig extends RefreshableConfig {
   }
 
   public int grayReleaseRuleScanInterval() {
-    int interval = getIntProperty("apollo.gray-release-rule-scan.interval", 60);
-    return checkInt(interval, 1, Integer.MAX_VALUE, 60);
+    int interval = getIntProperty("apollo.gray-release-rule-scan.interval", DEFAULT_GRAY_RELEASE_RULE_SCAN_INTERVAL);
+    return checkInt(interval, 1, Integer.MAX_VALUE, DEFAULT_GRAY_RELEASE_RULE_SCAN_INTERVAL);
   }
 
   public int itemKeyLengthLimit() {
@@ -85,17 +95,19 @@ public class BizConfig extends RefreshableConfig {
   }
 
   public int appNamespaceCacheScanInterval() {
-    int interval = getIntProperty("apollo.app-namespace-cache-scan.interval", 1);
-    return checkInt(interval, 1, Integer.MAX_VALUE, 1);
+    int interval = getIntProperty("apollo.app-namespace-cache-scan.interval",
+                                  DEFAULT_APPNAMESPACE_CACHE_SCAN_INTERVAL);
+    return checkInt(interval, 1, Integer.MAX_VALUE, DEFAULT_APPNAMESPACE_CACHE_SCAN_INTERVAL);
   }
 
   public TimeUnit appNamespaceCacheScanIntervalTimeUnit() {
-    return TimeUnit.SECONDS;
+    return TimeUnit.MILLISECONDS;
   }
 
   public int appNamespaceCacheRebuildInterval() {
-    int interval = getIntProperty("apollo.app-namespace-cache-rebuild.interval", 60);
-    return checkInt(interval, 1, Integer.MAX_VALUE, 60);
+    int interval = getIntProperty("apollo.app-namespace-cache-rebuild.interval",
+                                  DEFAULT_APPNAMESPACE_CACHE_REBUILD_INTERVAL);
+    return checkInt(interval, 1, Integer.MAX_VALUE, DEFAULT_APPNAMESPACE_CACHE_REBUILD_INTERVAL);
   }
 
   public TimeUnit appNamespaceCacheRebuildIntervalTimeUnit() {
@@ -103,22 +115,36 @@ public class BizConfig extends RefreshableConfig {
   }
 
   public int releaseMessageCacheScanInterval() {
-    int interval = getIntProperty("apollo.release-message-cache-scan.interval", 1);
-    return checkInt(interval, 1, Integer.MAX_VALUE, 1);
+    int interval = getIntProperty("apollo.release-message-cache-scan.interval",
+                                  DEFAULT_RELEASE_MESSAGE_CACHE_SCAN_INTERVAL);
+    return checkInt(interval, 1, Integer.MAX_VALUE, DEFAULT_RELEASE_MESSAGE_CACHE_SCAN_INTERVAL);
   }
 
   public TimeUnit releaseMessageCacheScanIntervalTimeUnit() {
-    return TimeUnit.SECONDS;
+    return TimeUnit.MILLISECONDS;
   }
 
   public int releaseMessageNotificationBatch() {
-    int batch = getIntProperty("apollo.release-message.notification.batch", 100);
-    return checkInt(batch, 1, Integer.MAX_VALUE, 100);
+    int batch = getIntProperty("apollo.release-message.notification.batch",
+                               DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH);
+    return checkInt(batch, 1, Integer.MAX_VALUE, DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH);
   }
 
   public int releaseMessageNotificationBatchIntervalInMilli() {
-    int interval = getIntProperty("apollo.release-message.notification.batch.interval", 100);
-    return checkInt(interval, 1, Integer.MAX_VALUE, 100);
+    int interval = getIntProperty("apollo.release-message.notification.batch.interval",
+                                  DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI);
+    return checkInt(interval, 1, Integer.MAX_VALUE, DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI);
+  }
+
+  public int configCacheSize() {
+    int cacheSize = getIntProperty("config.cache.size", DEFAULT_CONFIG_CACHE_SIZE);
+    return checkInt(cacheSize, 1, Integer.MAX_VALUE, DEFAULT_CONFIG_CACHE_SIZE);
+  }
+
+  public int configCacheExpireDuration() {
+    int cacheExpireDuration = getIntProperty("config.cache.expire.duration",
+                                             DEFAULT_CONFIG_CACHE_EXPIRE_DURATION);
+    return checkInt(cacheExpireDuration, 1, Integer.MAX_VALUE, DEFAULT_CONFIG_CACHE_EXPIRE_DURATION);
   }
 
   int checkInt(int value, int min, int max, int defaultValue) {
