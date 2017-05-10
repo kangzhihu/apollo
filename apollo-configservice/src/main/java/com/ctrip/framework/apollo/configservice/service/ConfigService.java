@@ -64,10 +64,6 @@ public class ConfigService {
     if (release == null) {
       release = configCache.get(configAppId, configClusterName, configNamespace);
     }
-    //load from db
-    if (release == null) {
-      release = releaseService.findLatestActiveRelease(configAppId, configClusterName, configNamespace);
-    }
 
     return release;
   }

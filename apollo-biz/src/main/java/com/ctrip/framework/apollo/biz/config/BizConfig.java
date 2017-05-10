@@ -20,15 +20,13 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class BizConfig extends RefreshableConfig {
-//  defaultCacheExpireDuration
+
   private static final int DEFAULT_APPNAMESPACE_CACHE_REBUILD_INTERVAL = 60; //60s
   private static final int DEFAULT_GRAY_RELEASE_RULE_SCAN_INTERVAL = 60;
   private static final int DEFAULT_APPNAMESPACE_CACHE_SCAN_INTERVAL = 1000; //1s
   private static final int DEFAULT_RELEASE_MESSAGE_CACHE_SCAN_INTERVAL = 100; //100ms
   static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH = 500;
   private static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI = 100;//100ms
-  private static final int DEFAULT_CONFIG_CACHE_SIZE = 4000;
-  private static final int DEFAULT_CONFIG_CACHE_EXPIRE_DURATION = 300;//5min
 
 
   private Gson gson = new Gson();
@@ -134,17 +132,6 @@ public class BizConfig extends RefreshableConfig {
     int interval = getIntProperty("apollo.release-message.notification.batch.interval",
                                   DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI);
     return checkInt(interval, 1, Integer.MAX_VALUE, DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI);
-  }
-
-  public int configCacheSize() {
-    int cacheSize = getIntProperty("config.cache.size", DEFAULT_CONFIG_CACHE_SIZE);
-    return checkInt(cacheSize, 1, Integer.MAX_VALUE, DEFAULT_CONFIG_CACHE_SIZE);
-  }
-
-  public int configCacheExpireDuration() {
-    int cacheExpireDuration = getIntProperty("config.cache.expire.duration",
-                                             DEFAULT_CONFIG_CACHE_EXPIRE_DURATION);
-    return checkInt(cacheExpireDuration, 1, Integer.MAX_VALUE, DEFAULT_CONFIG_CACHE_EXPIRE_DURATION);
   }
 
   int checkInt(int value, int min, int max, int defaultValue) {

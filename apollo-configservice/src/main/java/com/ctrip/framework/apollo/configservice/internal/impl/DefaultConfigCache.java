@@ -6,7 +6,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import com.ctrip.framework.apollo.biz.config.BizConfig;
 import com.ctrip.framework.apollo.biz.entity.Release;
 import com.ctrip.framework.apollo.biz.service.ReleaseService;
 import com.ctrip.framework.apollo.biz.utils.ReleaseMessageKeyGenerator;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -37,8 +35,6 @@ public class DefaultConfigCache implements ConfigCache {
 
   @Autowired
   private ReleaseService releaseService;
-  @Autowired
-  private BizConfig bizConfig;
 
   private LoadingCache<String, Optional<Release>> configCache;
 
@@ -46,8 +42,6 @@ public class DefaultConfigCache implements ConfigCache {
   @PostConstruct
   public void init() {
     configCache = CacheBuilder.newBuilder()
-        .maximumSize(bizConfig.configCacheSize())
-        .expireAfterWrite(bizConfig.configCacheExpireDuration(), TimeUnit.SECONDS)
         .build(new CacheLoader<String, Optional<Release>>() {
           @Override
           public Optional<Release> load(String key) throws Exception {

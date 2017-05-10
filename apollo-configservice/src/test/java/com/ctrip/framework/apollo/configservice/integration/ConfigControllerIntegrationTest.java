@@ -227,6 +227,7 @@ public class ConfigControllerIntegrationTest extends AbstractBaseIntegrationTest
   @Sql(scripts = "/integration-test/test-release.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @Sql(scripts = "/integration-test/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
   public void testQueryPublicConfigWithDataCenterNotFoundAndNoOverride() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
     String someDCNotFound = "someDCNotFound";
     ResponseEntity<ApolloConfig> response = restTemplate
         .getForEntity("{baseurl}/configs/{appId}/{clusterName}/{namespace}?dataCenter={dateCenter}",
@@ -247,6 +248,7 @@ public class ConfigControllerIntegrationTest extends AbstractBaseIntegrationTest
   @Sql(scripts = "/integration-test/test-release-public-default-override.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @Sql(scripts = "/integration-test/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
   public void testQueryPublicConfigWithDataCenterNotFoundAndOverride() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
     String someDCNotFound = "someDCNotFound";
     ResponseEntity<ApolloConfig> response = restTemplate
         .getForEntity("{baseurl}/configs/{appId}/{clusterName}/{namespace}?dataCenter={dateCenter}",
