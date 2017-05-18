@@ -20,11 +20,12 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class BizConfig extends RefreshableConfig {
-//  defaultCacheExpireDuration
+
   private static final int DEFAULT_APPNAMESPACE_CACHE_REBUILD_INTERVAL = 60; //60s
   private static final int DEFAULT_GRAY_RELEASE_RULE_SCAN_INTERVAL = 60;
   private static final int DEFAULT_APPNAMESPACE_CACHE_SCAN_INTERVAL = 1000; //1s
-  private static final int DEFAULT_RELEASE_MESSAGE_CACHE_SCAN_INTERVAL = 100; //100ms
+  private static final int DEFAULT_RELEASE_MESSAGE_CACHE_SCAN_INTERVAL = 1000; //1s
+  private static final int DEFAULT_RELEASE_MESSAGE_SCAN_INTERVAL_IN_MS = 1000;
   static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH = 500;
   private static final int DEFAULT_RELEASE_MESSAGE_NOTIFICATION_BATCH_INTERVAL_IN_MILLI = 100;//100ms
   private static final int DEFAULT_CONFIG_CACHE_SIZE = 4000;
@@ -122,6 +123,11 @@ public class BizConfig extends RefreshableConfig {
 
   public TimeUnit releaseMessageCacheScanIntervalTimeUnit() {
     return TimeUnit.MILLISECONDS;
+  }
+
+  public int releaseMessageScanInterval() {
+    int interval = getIntProperty("apollo.message-scan.interval", DEFAULT_RELEASE_MESSAGE_SCAN_INTERVAL_IN_MS);
+    return checkInt(interval, 1, Integer.MAX_VALUE, DEFAULT_RELEASE_MESSAGE_SCAN_INTERVAL_IN_MS);
   }
 
   public int releaseMessageNotificationBatch() {
