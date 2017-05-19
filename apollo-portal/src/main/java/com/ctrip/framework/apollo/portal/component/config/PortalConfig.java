@@ -238,4 +238,8 @@ public class PortalConfig extends RefreshableConfig {
   public String noticeContent() {
     return getValue("notice.content", "");
   }
+
+  public int openAPIPublishMinAccessInterval() {
+    return getIntProperty("openapi.publish.min-duration", 5000);
+  }
 }
