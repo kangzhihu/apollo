@@ -222,13 +222,13 @@ public class NotificationControllerV2 implements ReleaseMessageListener {
       return;
     }
 
-    doInvalidateCache(message);
+    doRefreshCache(message);
     
     doNotify(changedNamespace, message);
   }
 
-  private void doInvalidateCache(ReleaseMessage message) {
-    configCache.invalidate(message.getMessage());
+  private void doRefreshCache(ReleaseMessage message) {
+    configCache.refresh(message.getMessage());
   }
 
   private void doNotify(String changedNamespace, ReleaseMessage message) {

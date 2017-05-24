@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ReleaseMessageScanner implements InitializingBean {
   private static final Logger logger = LoggerFactory.getLogger(ReleaseMessageScanner.class);
-  private static final int DEFAULT_SCAN_INTERVAL_IN_MS = 1000;
+  private static final int DEFAULT_SCAN_INTERVAL_IN_MS = 200;
   @Autowired
   private Environment env;
   @Autowired

@@ -29,6 +29,7 @@ public class DefaultConfigCache implements ConfigCache {
 
   private static final String CAT_EVENT_CACHE_INVALIDATE = "Cache.Invalidate";
   private static final String CAT_EVENT_CACHE_LOAD = "Cache.LoadFromDB";
+  private static final String CAT_EVENT_CACHE_REFRESH = "Cache.Refresh";
   private static final String CAT_EVENT_CACHE_GET = "Cache.Get";
   private static final Splitter STRING_SPLITTER =
       Splitter.on(ConfigConsts.CLUSTER_NAMESPACE_SEPARATOR).omitEmptyStrings();
@@ -51,10 +52,8 @@ public class DefaultConfigCache implements ConfigCache {
                               new IllegalArgumentException());
               return Optional.absent();
             }
-            Release release = releaseService.findLatestActiveRelease(namespaceInfo.get(0), namespaceInfo.get(1),
-                                                                     namespaceInfo.get(2));
             Tracer.logEvent(CAT_EVENT_CACHE_LOAD, key);
-            return release == null ? Optional.absent() : Optional.of(release);
+            return loadRelease(namespaceInfo.get(0), namespaceInfo.get(1), namespaceInfo.get(2));
           }
         });
   }
@@ -92,8 +91,32 @@ public class DefaultConfigCache implements ConfigCache {
   }
 
   @Override
+  public void refresh(String appId, String clusterName, String namespaceName) {
+    String key = ReleaseMessageKeyGenerator.generate(appId, clusterName, namespaceName);
+    configCache.put(key, loadRelease(appId, clusterName, namespaceName));
+    Tracer.logEvent(CAT_EVENT_CACHE_REFRESH, key);
+  }
+
+  @Override
+  public void refresh(String key) {
+    List<String> namespaceInfo = STRING_SPLITTER.splitToList(key);
+    if (namespaceInfo.size() != 3) {
+      Tracer
+          .logError(String.format("Cache load key's size not equal 3. Key = %s", key), new IllegalArgumentException());
+      return;
+    }
+    configCache.put(key, loadRelease(namespaceInfo.get(0), namespaceInfo.get(1), namespaceInfo.get(2)));
+    Tracer.logEvent(CAT_EVENT_CACHE_REFRESH, key);
+  }
+
+  @Override
   public void clear() {
     configCache.invalidateAll();
+  }
+
+  private Optional<Release> loadRelease(String appId, String clusterName, String namespaceName) {
+    Release release = releaseService.findLatestActiveRelease(appId, clusterName, namespaceName);
+    return release == null ? Optional.absent() : Optional.of(release);
   }
 
 }

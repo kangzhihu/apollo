@@ -8,17 +8,21 @@ import com.ctrip.framework.apollo.core.enums.Env;
 import com.ctrip.framework.apollo.core.utils.StringUtils;
 import com.ctrip.framework.apollo.openapi.dto.OpenReleaseDTO;
 import com.ctrip.framework.apollo.openapi.util.OpenApiBeanUtils;
+import com.ctrip.framework.apollo.portal.component.config.PortalConfig;
 import com.ctrip.framework.apollo.portal.entity.model.NamespaceReleaseModel;
 import com.ctrip.framework.apollo.portal.service.ReleaseService;
 import com.ctrip.framework.apollo.portal.spi.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,6 +36,8 @@ public class ReleaseController {
   private ReleaseService releaseService;
   @Autowired
   private UserService userService;
+  @Autowired
+  private PortalConfig portalConfig;
 
   @PreAuthorize(value = "@consumerPermissionValidator.hasReleaseNamespacePermission(#request, #appId, #namespaceName)")
   @RequestMapping(value = "/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName}/releases", method = RequestMethod.POST)
@@ -43,11 +49,21 @@ public class ReleaseController {
 
     checkModel(model != null);
     RequestPrecondition.checkArguments(!StringUtils.isContainEmpty(model.getReleasedBy(), model
-            .getReleaseTitle()),
-        "Params(releaseTitle and releasedBy) can not be empty");
+                                           .getReleaseTitle()),
+                                       "Params(releaseTitle and releasedBy) can not be empty");
 
     if (userService.findByUserId(model.getReleasedBy()) == null) {
       throw new BadRequestException("user(releaseBy) not exists");
+    }
+
+    //rate limit
+    ReleaseDTO latestRelease = releaseService.loadLatestRelease(appId, Env.fromString(env), clusterName, namespaceName);
+    if (latestRelease != null) {
+      int minAccessInterval = portalConfig.openAPIPublishMinAccessInterval();
+      if (new Date().getTime() - latestRelease.getDataChangeCreatedTime().getTime() < minAccessInterval) {
+        throw new AccessDeniedException(
+            "Access is too frequent. Minimum access interval is " + minAccessInterval + " ms");
+      }
     }
 
     model.setAppId(appId);

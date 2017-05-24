@@ -164,6 +164,48 @@ public class ConfigCacheTest {
     verify(releaseService).findLatestActiveRelease(appId, cluster, namespace);
   }
 
+  @Test
+  public void testRefreshCacheWithExist() {
+    Release result = MockBeanFactory.mockRelease(releaseId, releaseKey, appId, cluster, namespace, null);
+
+    when(releaseService.findLatestActiveRelease(appId, cluster, namespace)).thenReturn(result);
+
+    configCache.refresh(appId, cluster, namespace);
+
+    Release firstGetResult = configCache.get(appId, cluster, namespace);
+    Assert.assertNotNull(firstGetResult);
+    Assert.assertEquals(releaseKey, firstGetResult.getReleaseKey());
+    verify(releaseService).findLatestActiveRelease(appId, cluster, namespace);
+
+    Release secondGetResult = configCache.get(appId, cluster, namespace);
+    Assert.assertNotNull(secondGetResult);
+    Assert.assertEquals(releaseKey, secondGetResult.getReleaseKey());
+    verify(releaseService, times(1)).findLatestActiveRelease(appId, cluster, namespace);
+  }
+
+  @Test
+  public void testRefreshCacheWithoutExist() {
+    Release result = MockBeanFactory.mockRelease(releaseId, releaseKey, appId, cluster, namespace, null);
+
+    when(releaseService.findLatestActiveRelease(appId, cluster, namespace)).thenReturn(result);
+
+    Release firstGetResult = configCache.get(appId, cluster, namespace);
+    Assert.assertNotNull(firstGetResult);
+    Assert.assertEquals(releaseKey, firstGetResult.getReleaseKey());
+    verify(releaseService).findLatestActiveRelease(appId, cluster, namespace);
+
+    String secondReleaseKey = "secondReleaseKey";
+    Release secondResult = MockBeanFactory.mockRelease(releaseId, secondReleaseKey, appId, cluster, namespace, null);
+
+    when(releaseService.findLatestActiveRelease(appId, cluster, namespace)).thenReturn(secondResult);
+    configCache.refresh(appId, cluster, namespace);
+
+    Release secondGetResult = configCache.get(appId, cluster, namespace);
+    Assert.assertNotNull(secondGetResult);
+    Assert.assertEquals(secondReleaseKey, secondGetResult.getReleaseKey());
+    verify(releaseService, times(2)).findLatestActiveRelease(appId, cluster, namespace);
+  }
+
   private void sleep(int milliseconds) {
     try {
       TimeUnit.MILLISECONDS.sleep(milliseconds);

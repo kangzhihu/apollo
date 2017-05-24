@@ -10,6 +10,10 @@ public interface ConfigCache {
 
   void invalidate(String key);
 
+  void refresh(String appId, String clusterName, String namespaceName);
+
+  void refresh(String key);
+
   void clear();
 
 }
