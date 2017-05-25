@@ -83,6 +83,11 @@ public class NamespaceBranchController {
 
     namespaceBranchService.updateBranchGrayRules(appId, clusterName, namespaceName, branchName, newRules);
 
+    Namespace namespace = namespaceService.findOne(appId, clusterName, namespaceName);
+    appId = namespace.getAppId();
+    clusterName = namespace.getClusterName();
+    namespaceName = namespace.getNamespaceName();
+
     messageSender.sendMessage(ReleaseMessageKeyGenerator.generate(appId, clusterName, namespaceName),
                               Topics.APOLLO_RELEASE_TOPIC);
   }
@@ -96,6 +101,12 @@ public class NamespaceBranchController {
 
     namespaceBranchService
         .deleteBranch(appId, clusterName, namespaceName, branchName, NamespaceBranchStatus.DELETED, operator);
+
+
+    Namespace namespace = namespaceService.findOne(appId, clusterName, namespaceName);
+    appId = namespace.getAppId();
+    clusterName = namespace.getClusterName();
+    namespaceName = namespace.getNamespaceName();
 
     messageSender.sendMessage(ReleaseMessageKeyGenerator.generate(appId, clusterName, namespaceName),
                               Topics.APOLLO_RELEASE_TOPIC);

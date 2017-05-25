@@ -9,6 +9,7 @@ import com.ctrip.framework.apollo.biz.message.Topics;
 import com.ctrip.framework.apollo.biz.repository.ReleaseRepository;
 import com.ctrip.framework.apollo.biz.service.NamespaceService;
 import com.ctrip.framework.apollo.biz.service.ReleaseService;
+import com.ctrip.framework.apollo.biz.utils.MockBeanFactory;
 import com.ctrip.framework.apollo.common.dto.AppDTO;
 import com.ctrip.framework.apollo.common.dto.ClusterDTO;
 import com.ctrip.framework.apollo.common.dto.ItemDTO;
@@ -110,7 +111,10 @@ public class ReleaseControllerTest extends AbstractControllerTest {
     NamespaceService someNamespaceService = mock(NamespaceService.class);
     ReleaseService someReleaseService = mock(ReleaseService.class);
     MessageSender someMessageSender = mock(MessageSender.class);
-    Namespace someNamespace = mock(Namespace.class);
+    Namespace someNamespace = MockBeanFactory.mockNamespace(1, someAppId, someCluster, someNamespaceName);
+//    someNamespace.setAppId(someAppId);
+//    someNamespace.setClusterName(someCluster);
+//    someNamespace.setNamespaceName(someNamespaceName);
 
     ReleaseController releaseController = new ReleaseController();
     ReflectionTestUtils.setField(releaseController, "releaseService", someReleaseService);

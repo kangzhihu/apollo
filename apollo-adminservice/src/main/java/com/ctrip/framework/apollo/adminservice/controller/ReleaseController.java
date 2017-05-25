@@ -107,6 +107,10 @@ public class ReleaseController {
       throw new NotFoundException(String.format("Could not find namespace for %s %s %s", appId,
                                                 clusterName, namespaceName));
     }
+    appId = namespace.getAppId();
+    clusterName = namespace.getClusterName();
+    namespaceName = namespace.getNamespaceName();
+
     Release release = releaseService.publish(namespace, releaseName, releaseComment, operator, isEmergencyPublish);
 
     //send release message
@@ -144,6 +148,10 @@ public class ReleaseController {
       throw new NotFoundException(String.format("Could not find namespace for %s %s %s", appId,
                                                 clusterName, namespaceName));
     }
+
+    appId = namespace.getAppId();
+    clusterName = namespace.getClusterName();
+    namespaceName = namespace.getNamespaceName();
 
     Release release = releaseService.mergeBranchChangeSetsAndRelease(namespace, branchName, releaseName,
                                                                      releaseComment, isEmergencyPublish, changeSets);
