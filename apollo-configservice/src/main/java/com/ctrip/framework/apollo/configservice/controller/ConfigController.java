@@ -10,6 +10,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import com.ctrip.framework.apollo.biz.entity.Release;
+import com.ctrip.framework.apollo.biz.utils.ReleaseKeyGenerator;
+import com.ctrip.framework.apollo.biz.utils.ReleaseMessageKeyGenerator;
 import com.ctrip.framework.apollo.common.entity.AppNamespace;
 import com.ctrip.framework.apollo.configservice.internal.NamespaceNameCorrector;
 import com.ctrip.framework.apollo.configservice.service.AppNamespaceServiceWithCache;
@@ -71,6 +73,9 @@ public class ConfigController {
                                   @RequestParam(value = "ip", required = false) String clientIp,
                                   HttpServletRequest request,
                                   HttpServletResponse response) throws IOException {
+
+    Tracer.logEvent("Apollo.Config.Query", ReleaseMessageKeyGenerator.generate(appId, clusterName, namespace));
+
     String originalNamespace = namespace;
 
     //strip out .properties suffix
