@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken;
 
 import com.ctrip.framework.apollo.biz.entity.Release;
 import com.ctrip.framework.apollo.common.entity.AppNamespace;
+import com.ctrip.framework.apollo.configservice.internal.NamespaceNameCorrector;
 import com.ctrip.framework.apollo.configservice.service.AppNamespaceServiceWithCache;
 import com.ctrip.framework.apollo.configservice.service.ConfigService;
 import com.ctrip.framework.apollo.configservice.util.InstanceConfigAuditUtil;
@@ -51,6 +52,8 @@ public class ConfigController {
   private InstanceConfigAuditUtil instanceConfigAuditUtil;
   @Autowired
   private ConfigService configService;
+  @Autowired
+  private NamespaceNameCorrector namespaceNameCorrector;
 
   private static final Gson gson = new Gson();
   private static final Type configurationTypeReference =
@@ -69,8 +72,10 @@ public class ConfigController {
                                   HttpServletRequest request,
                                   HttpServletResponse response) throws IOException {
     String originalNamespace = namespace;
+
     //strip out .properties suffix
     namespace = namespaceUtil.filterNamespaceName(namespace);
+    namespace = namespaceNameCorrector.correct(appId, namespace);
 
     if (Strings.isNullOrEmpty(clientIp)) {
       clientIp = tryToGetClientIp(request);

@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.ctrip.framework.apollo.biz.entity.ReleaseMessage;
 import com.ctrip.framework.apollo.biz.grayReleaseRule.GrayReleaseRulesHolder;
 import com.ctrip.framework.apollo.biz.message.Topics;
+import com.ctrip.framework.apollo.configservice.internal.NamespaceNameCorrector;
 import com.ctrip.framework.apollo.configservice.util.NamespaceUtil;
 import com.ctrip.framework.apollo.configservice.util.WatchKeysUtil;
 import com.ctrip.framework.apollo.core.dto.ApolloConfig;
@@ -52,6 +53,9 @@ public class ConfigFileControllerTest {
   private NamespaceUtil namespaceUtil;
   @Mock
   private GrayReleaseRulesHolder grayReleaseRulesHolder;
+  @Mock
+  private NamespaceNameCorrector namespaceNameCorrector;
+
   private ConfigFileController configFileController;
   private String someAppId;
   private String someClusterName;
@@ -72,6 +76,7 @@ public class ConfigFileControllerTest {
     ReflectionTestUtils.setField(configFileController, "watchKeysUtil", watchKeysUtil);
     ReflectionTestUtils.setField(configFileController, "namespaceUtil", namespaceUtil);
     ReflectionTestUtils.setField(configFileController, "grayReleaseRulesHolder", grayReleaseRulesHolder);
+    ReflectionTestUtils.setField(configFileController, "namespaceNameCorrector", namespaceNameCorrector);
 
     someAppId = "someAppId";
     someClusterName = "someClusterName";
@@ -109,6 +114,8 @@ public class ConfigFileControllerTest {
     Map<String, String> configurations =
         ImmutableMap.of(someKey, someValue, anotherKey, anotherValue);
     ApolloConfig someApolloConfig = mock(ApolloConfig.class);
+
+    when(namespaceNameCorrector.correct(someAppId, someNamespace)).thenReturn(someNamespace);
     when(someApolloConfig.getConfigurations()).thenReturn(configurations);
     when(configController
         .queryConfig(someAppId, someClusterName, someNamespace, someDataCenter, "-1", someClientIp,
@@ -158,6 +165,8 @@ public class ConfigFileControllerTest {
     Map<String, String> configurations =
         ImmutableMap.of(someKey, someValue);
     ApolloConfig someApolloConfig = mock(ApolloConfig.class);
+
+    when(namespaceNameCorrector.correct(someAppId, someNamespace)).thenReturn(someNamespace);
     when(configController
         .queryConfig(someAppId, someClusterName, someNamespace, someDataCenter, "-1", someClientIp,
             someRequest, someResponse)).thenReturn(someApolloConfig);
@@ -185,6 +194,7 @@ public class ConfigFileControllerTest {
     Map<String, String> configurations =
         ImmutableMap.of(someKey, someValue);
 
+    when(namespaceNameCorrector.correct(someAppId, someNamespace)).thenReturn(someNamespace);
     when(grayReleaseRulesHolder.hasGrayReleaseRule(someAppId, someClientIp, someNamespace))
         .thenReturn(true);
 

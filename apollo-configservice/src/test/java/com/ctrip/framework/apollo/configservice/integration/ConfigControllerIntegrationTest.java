@@ -67,6 +67,21 @@ public class ConfigControllerIntegrationTest extends AbstractBaseIntegrationTest
 
   @Test
   @Sql(scripts = "/integration-test/test-release.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+  @Sql(scripts = "/integration-test/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+  public void testQueryPrivateNamespaceWithUpperCase() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
+    ResponseEntity<ApolloConfig> response = restTemplate
+        .getForEntity("{baseurl}/configs/{appId}/{clusterName}/{namespace}", ApolloConfig.class,
+                      getHostUrl(), someAppId, ConfigConsts.CLUSTER_NAME_DEFAULT, ConfigConsts.NAMESPACE_APPLICATION.toUpperCase());
+    ApolloConfig result = response.getBody();
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("TEST-RELEASE-KEY1", result.getReleaseKey());
+    assertEquals("v1", result.getConfigurations().get("k1"));
+  }
+
+  @Test
+  @Sql(scripts = "/integration-test/test-release.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @Sql(scripts = "/integration-test/test-gray-release.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
   @Sql(scripts = "/integration-test/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
   public void testQueryGrayConfigWithDefaultClusterAndDefaultNamespaceOK() throws Exception {
@@ -219,6 +234,28 @@ public class ConfigControllerIntegrationTest extends AbstractBaseIntegrationTest
     assertEquals(someAppId, result.getAppId());
     assertEquals(someDC, result.getCluster());
     assertEquals(somePublicNamespace, result.getNamespaceName());
+    assertEquals("override-someDC-v1", result.getConfigurations().get("k1"));
+    assertEquals("someDC-v2", result.getConfigurations().get("k2"));
+  }
+
+  @Test
+  @Sql(scripts = "/integration-test/test-release.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+  @Sql(scripts = "/integration-test/test-release-public-dc-override.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+  @Sql(scripts = "/integration-test/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+  public void testQueryPublicNamespaceWithUpperCase() throws Exception {
+    TimeUnit.SECONDS.sleep(1);
+    ResponseEntity<ApolloConfig> response = restTemplate
+        .getForEntity("{baseurl}/configs/{appId}/{clusterName}/{namespace}?dataCenter={dateCenter}",
+                      ApolloConfig.class,
+                      getHostUrl(), someAppId, someDefaultCluster, somePublicNamespace.toUpperCase(), someDC);
+    ApolloConfig result = response.getBody();
+
+    assertEquals(
+        "TEST-RELEASE-KEY6" + ConfigConsts.CLUSTER_NAMESPACE_SEPARATOR + "TEST-RELEASE-KEY4",
+        result.getReleaseKey());
+    assertEquals(someAppId, result.getAppId());
+    assertEquals(someDC, result.getCluster());
+    assertEquals(somePublicNamespace.toUpperCase(), result.getNamespaceName());
     assertEquals("override-someDC-v1", result.getConfigurations().get("k1"));
     assertEquals("someDC-v2", result.getConfigurations().get("k2"));
   }
