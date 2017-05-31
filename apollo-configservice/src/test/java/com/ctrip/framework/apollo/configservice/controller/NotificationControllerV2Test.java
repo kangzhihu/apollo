@@ -12,6 +12,8 @@ import com.ctrip.framework.apollo.biz.entity.ReleaseMessage;
 import com.ctrip.framework.apollo.biz.message.Topics;
 import com.ctrip.framework.apollo.biz.utils.EntityManagerUtil;
 import com.ctrip.framework.apollo.configservice.internal.ConfigCache;
+import com.ctrip.framework.apollo.configservice.internal.DeferredResultWrapper;
+import com.ctrip.framework.apollo.configservice.internal.NamespaceNameCorrector;
 import com.ctrip.framework.apollo.configservice.service.ReleaseMessageServiceWithCache;
 import com.ctrip.framework.apollo.configservice.util.NamespaceUtil;
 import com.ctrip.framework.apollo.configservice.util.WatchKeysUtil;
@@ -28,11 +30,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,11 +70,12 @@ public class NotificationControllerV2Test {
   private BizConfig bizConfig;
   @Mock
   private ConfigCache configCache;
+  @Mock
+  private NamespaceNameCorrector namespaceNameCorrector;
 
   private Gson gson;
 
-  private Multimap<String, DeferredResult<ResponseEntity<List<ApolloConfigNotification>>>>
-      deferredResults;
+  private Multimap<String, DeferredResultWrapper> deferredResults;
 
   @Before
   public void setUp() throws Exception {
@@ -85,6 +92,7 @@ public class NotificationControllerV2Test {
     ReflectionTestUtils.setField(controller, "gson", gson);
     ReflectionTestUtils.setField(controller, "bizConfig", bizConfig);
     ReflectionTestUtils.setField(controller, "configCache", configCache);
+    ReflectionTestUtils.setField(controller, "namespaceNameCorrector", namespaceNameCorrector);
 
     someAppId = "someAppId";
     someCluster = "someCluster";
@@ -99,8 +107,7 @@ public class NotificationControllerV2Test {
     when(namespaceUtil.filterNamespaceName(somePublicNamespace)).thenReturn(somePublicNamespace);
 
     deferredResults =
-        (Multimap<String, DeferredResult<ResponseEntity<List<ApolloConfigNotification>>>>) ReflectionTestUtils
-            .getField(controller, "deferredResults");
+        (Multimap<String, DeferredResultWrapper>) ReflectionTestUtils.getField(controller, "deferredResults");
   }
 
   @Test
@@ -114,8 +121,9 @@ public class NotificationControllerV2Test {
     String notificationAsString =
         transformApolloConfigNotificationsToString(defaultNamespace, someNotificationId);
 
-    when(watchKeysUtil
-        .assembleAllWatchKeys(someAppId, someCluster, Sets.newHashSet(defaultNamespace),
+    when(namespaceNameCorrector.correct(someAppId, defaultNamespace)).thenReturn(defaultNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespace)).thenReturn(somePublicNamespace);
+    when(watchKeysUtil.assembleAllWatchKeys(someAppId, someCluster, Sets.newHashSet(defaultNamespace),
             someDataCenter)).thenReturn(
         watchKeysMap);
 
@@ -126,9 +134,35 @@ public class NotificationControllerV2Test {
 
     assertEquals(watchKeysMap.size(), deferredResults.size());
 
-    for (String watchKey : watchKeysMap.values()) {
-      assertTrue(deferredResults.get(watchKey).contains(deferredResult));
-    }
+    assertWatchKeys(watchKeysMap, deferredResult);
+  }
+
+  @Test
+  public void testPollNotificationWithDefaultNamespaceAndUpperCase() throws Exception {
+    String someWatchKey = "someKey";
+    String anotherWatchKey = "anotherKey";
+
+    Multimap<String, String> watchKeysMap =
+        assembleMultiMap(defaultNamespace, Lists.newArrayList(someWatchKey, anotherWatchKey));
+
+    String notificationAsString =
+        transformApolloConfigNotificationsToString(defaultNamespace.toUpperCase(), someNotificationId);
+
+    when(namespaceUtil.filterNamespaceName(defaultNamespace.toUpperCase())).thenReturn(defaultNamespace.toUpperCase());
+    when(namespaceNameCorrector.correct(someAppId, defaultNamespace.toUpperCase())).thenReturn(defaultNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespace)).thenReturn(somePublicNamespace);
+    when(watchKeysUtil.assembleAllWatchKeys(someAppId, someCluster, Sets.newHashSet(defaultNamespace),
+                                            someDataCenter)).thenReturn(
+        watchKeysMap);
+
+    DeferredResult<ResponseEntity<List<ApolloConfigNotification>>>
+        deferredResult = controller
+        .pollNotification(someAppId, someCluster, notificationAsString, someDataCenter,
+                          someClientIp);
+
+    assertEquals(watchKeysMap.size(), deferredResults.size());
+
+    assertWatchKeys(watchKeysMap, deferredResult);
   }
 
   @Test
@@ -139,6 +173,8 @@ public class NotificationControllerV2Test {
     String someWatchKey = "someKey";
     String anotherWatchKey = "anotherKey";
 
+    when(namespaceNameCorrector.correct(someAppId, defaultNamespace)).thenReturn(defaultNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespace)).thenReturn(somePublicNamespace);
     Multimap<String, String> watchKeysMap =
         assembleMultiMap(defaultNamespace, Lists.newArrayList(someWatchKey, anotherWatchKey));
 
@@ -157,9 +193,7 @@ public class NotificationControllerV2Test {
 
     assertEquals(watchKeysMap.size(), deferredResults.size());
 
-    for (String watchKey : watchKeysMap.values()) {
-      assertTrue(deferredResults.get(watchKey).contains(deferredResult));
-    }
+    assertWatchKeys(watchKeysMap, deferredResult);
   }
 
 
@@ -168,6 +202,9 @@ public class NotificationControllerV2Test {
     String defaultNamespaceAsFile = defaultNamespace + ".properties";
     String somePublicNamespaceAsFile = somePublicNamespace + ".xml";
 
+    when(namespaceNameCorrector.correct(someAppId, defaultNamespace)).thenReturn(defaultNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespace)).thenReturn(somePublicNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespaceAsFile)).thenReturn(somePublicNamespaceAsFile);
     when(namespaceUtil.filterNamespaceName(defaultNamespaceAsFile)).thenReturn(defaultNamespace);
     when(namespaceUtil.filterNamespaceName(somePublicNamespaceAsFile))
         .thenReturn(somePublicNamespaceAsFile);
@@ -203,9 +240,7 @@ public class NotificationControllerV2Test {
 
     assertEquals(watchKeysMap.size(), deferredResults.size());
 
-    for (String watchKey : watchKeysMap.values()) {
-      assertTrue(deferredResults.get(watchKey).contains(deferredResult));
-    }
+    assertWatchKeys(watchKeysMap, deferredResult);
 
     verify(watchKeysUtil, times(1)).assembleAllWatchKeys(someAppId, someCluster,
         Sets.newHashSet(defaultNamespace, somePublicNamespace, somePublicNamespaceAsFile),
@@ -220,6 +255,8 @@ public class NotificationControllerV2Test {
         .join(someAppId, someCluster, somePublicNamespace);
     long notificationId = someNotificationId + 1;
 
+    when(namespaceNameCorrector.correct(someAppId, defaultNamespace)).thenReturn(defaultNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespace)).thenReturn(somePublicNamespace);
     Multimap<String, String> watchKeysMap =
         assembleMultiMap(defaultNamespace, Lists.newArrayList(someWatchKey));
     watchKeysMap
@@ -266,6 +303,8 @@ public class NotificationControllerV2Test {
     watchKeysMap
         .putAll(assembleMultiMap(somePublicNamespace, Lists.newArrayList(anotherWatchKey)));
 
+    when(namespaceNameCorrector.correct(someAppId, defaultNamespace)).thenReturn(defaultNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespace)).thenReturn(somePublicNamespace);
     when(watchKeysUtil
         .assembleAllWatchKeys(someAppId, someCluster,
             Sets.newHashSet(defaultNamespace, somePublicNamespace), someDataCenter)).thenReturn(
@@ -304,6 +343,8 @@ public class NotificationControllerV2Test {
     int someBatch = 1;
     int someBatchInterval = 10;
 
+    when(namespaceNameCorrector.correct(someAppId, defaultNamespace)).thenReturn(defaultNamespace);
+    when(namespaceNameCorrector.correct(someAppId, somePublicNamespace)).thenReturn(somePublicNamespace);
     Multimap<String, String> watchKeysMap =
         assembleMultiMap(defaultNamespace, Lists.newArrayList(someWatchKey));
 
@@ -379,5 +420,18 @@ public class NotificationControllerV2Test {
     Multimap<String, String> multimap = HashMultimap.create();
     multimap.putAll(key, values);
     return multimap;
+  }
+
+  private void assertWatchKeys(Multimap<String, String> watchKeysMap, DeferredResult deferredResult) {
+    for (String watchKey : watchKeysMap.values()) {
+      Collection<DeferredResultWrapper> deferredResultWrappers = deferredResults.get(watchKey);
+      boolean found = false;
+      for (DeferredResultWrapper wrapper: deferredResultWrappers) {
+        if (Objects.equals(wrapper.getResult(), deferredResult)) {
+          found = true;
+        }
+      }
+      assertTrue(found);
+    }
   }
 }
