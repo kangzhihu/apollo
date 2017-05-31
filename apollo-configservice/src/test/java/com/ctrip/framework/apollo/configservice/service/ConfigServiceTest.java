@@ -50,14 +50,12 @@ public class ConfigServiceTest {
     when(grayReleaseRulesHolder
              .findReleaseIdFromGrayReleaseRule(anyString(), anyString(), anyString(), anyString(), anyString()))
         .thenReturn(null);
-    when(configCache.get(anyString(), anyString(), anyString()))
-        .thenReturn(null);
-    when(releaseService.findLatestActiveRelease(appId, targetCluster, namespace))
-        .thenReturn(clusterRelease);
+    when(configCache.get(appId, targetCluster, namespace)).thenReturn(clusterRelease);
 
     Release loadedRelease = configService.loadConfig(appId, clientIp, appId, targetCluster, namespace, dc);
 
-    Assert.assertEquals(releaseKey, loadedRelease.getReleaseKey());
+    verify(configCache).get(appId, targetCluster, namespace);
+    Assert.assertEquals(clusterRelease.getReleaseKey(), loadedRelease.getReleaseKey());
     verify(grayReleaseRulesHolder, times(0))
         .findReleaseIdFromGrayReleaseRule(appId, clientIp, appId, dc, namespace);
   }
@@ -71,44 +69,34 @@ public class ConfigServiceTest {
     when(grayReleaseRulesHolder
              .findReleaseIdFromGrayReleaseRule(anyString(), anyString(), anyString(), anyString(), anyString()))
         .thenReturn(null);
-    when(configCache.get(anyString(), anyString(), anyString()))
-        .thenReturn(null);
-    when(releaseService.findLatestActiveRelease(appId, dc, namespace))
-        .thenReturn(result);
+    when(configCache.get(appId, targetCluster, namespace)).thenReturn(null);
+    when(configCache.get(appId, dc, namespace)).thenReturn(result);
 
-    Release loadedRelease =
-        configService.loadConfig(appId, clientIp, appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace, dc);
+    Release loadedRelease = configService.loadConfig(appId, clientIp, appId, targetCluster, namespace, dc);
 
-    verify(grayReleaseRulesHolder, times(0))
-        .findReleaseIdFromGrayReleaseRule(appId, clientIp, appId, ConfigConsts.CLUSTER_NAME_DEFAULT,
-                                          namespace);
-    verify(releaseService).findLatestActiveRelease(appId, dc, namespace);
-    Assert.assertEquals(releaseKey, loadedRelease.getReleaseKey());
+    verify(configCache).get(appId, targetCluster, namespace);
+    verify(configCache).get(appId, dc, namespace);
+    Assert.assertEquals(result.getReleaseKey(), loadedRelease.getReleaseKey());
   }
 
   @Test
   public void testLoadConfigFromDefaultCluster() {
 
     Release result = MockBeanFactory
-            .mockRelease(releaseId, releaseKey, appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace, null);
+        .mockRelease(releaseId, releaseKey, appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace, null);
 
     when(grayReleaseRulesHolder.findReleaseIdFromGrayReleaseRule(anyString(), anyString(), anyString(),
                                                                  anyString(), anyString())).thenReturn(null);
-    when(configCache.get(anyString(), anyString(), anyString()))
-        .thenReturn(null);
-    when(releaseService.findLatestActiveRelease(appId, dc, namespace))
-        .thenReturn(null);
-    when(releaseService.findLatestActiveRelease(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace))
-        .thenReturn(result);
+    when(configCache.get(appId, targetCluster, namespace)).thenReturn(null);
+    when(configCache.get(appId, dc, namespace)).thenReturn(null);
+    when(configCache.get(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace)).thenReturn(result);
 
     Release loadedRelease =
         configService.loadConfig(appId, clientIp, appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace, dc);
 
-
-    verify(grayReleaseRulesHolder, times(2)).findReleaseIdFromGrayReleaseRule(anyString(), anyString(), anyString(),
-                                                                              anyString(), anyString());
-    verify(releaseService).findLatestActiveRelease(appId, dc, namespace);
-    verify(releaseService).findLatestActiveRelease(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace);
+    verify(configCache, never()).get(appId, targetCluster, namespace);
+    verify(configCache).get(appId, dc, namespace);
+    verify(configCache).get(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace);
     Assert.assertEquals(releaseKey, loadedRelease.getReleaseKey());
   }
 
@@ -126,8 +114,8 @@ public class ConfigServiceTest {
     Release loadedRelease =
         configService.loadConfig(appId, clientIp, appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace, dc);
 
-    verify(releaseService).findLatestActiveRelease(appId, dc, namespace);
-    verify(releaseService, never()).findLatestActiveRelease(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace);
+    verify(configCache).get(appId, dc, namespace);
+    verify(configCache, never()).get(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace);
     verify(releaseService).findActiveOne(releaseId);
     Assert.assertEquals(releaseKey, loadedRelease.getReleaseKey());
   }
@@ -144,8 +132,6 @@ public class ConfigServiceTest {
     Release loadedRelease =
         configService.loadConfig(appId, clientIp, appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace, dc);
 
-    verify(releaseService).findLatestActiveRelease(appId, dc, namespace);
-    verify(releaseService, never()).findLatestActiveRelease(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace);
     verify(releaseService, never()).findActiveOne(releaseId);
     verify(configCache).get(appId, ConfigConsts.CLUSTER_NAME_DEFAULT, namespace);
     verify(configCache).get(appId, dc, namespace);

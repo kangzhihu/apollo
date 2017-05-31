@@ -55,6 +55,12 @@ public class AppNamespaceServiceWithCache implements InitializingBean {
   //store namespaceName -> AppNamespace
   private Map<String, AppNamespace> publicAppNamespaceCache;
 
+  //store namespaceName -> AppNamespace ignore case
+  private Map<String, AppNamespace> publicAppNamespaceIgnoreCaseCache;
+
+  //store appId+namespaceName -> AppNamespace ignore case
+  private Map<String, AppNamespace> appNamespaceIgnoreCaseCache;
+
   //store appId+namespaceName -> AppNamespace
   private Map<String, AppNamespace> appNamespaceCache;
 
@@ -64,7 +70,9 @@ public class AppNamespaceServiceWithCache implements InitializingBean {
   public AppNamespaceServiceWithCache() {
     maxIdScanned = 0;
     publicAppNamespaceCache = Maps.newConcurrentMap();
+    publicAppNamespaceIgnoreCaseCache = Maps.newConcurrentMap();
     appNamespaceCache = Maps.newConcurrentMap();
+    appNamespaceIgnoreCaseCache = Maps.newConcurrentMap();
     appNamespaceIdCache = Maps.newConcurrentMap();
     scheduledExecutorService = Executors.newScheduledThreadPool(1, ApolloThreadFactory
         .create("AppNamespaceServiceWithCache", true));
@@ -75,12 +83,16 @@ public class AppNamespaceServiceWithCache implements InitializingBean {
     return appNamespaceCache.get(STRING_JOINER.join(appId, namespaceName));
   }
 
+  public AppNamespace findByAppIdAndNamespaceIgnoreCase(String appId, String namespaceName) {
+    Preconditions.checkArgument(!StringUtils.isContainEmpty(appId, namespaceName), "appId and namespaceName must not be empty");
+    return appNamespaceIgnoreCaseCache.get(STRING_JOINER.join(appId, namespaceName).toLowerCase());
+  }
+
   public List<AppNamespace> findByAppIdAndNamespaces(String appId, Set<String> namespaceNames) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(appId), "appId must not be null");
     if (namespaceNames == null || namespaceNames.isEmpty()) {
       return Collections.emptyList();
     }
-//    return appNamespaceRepository.findByAppIdAndNameIn(appId, namespaceNames);
     List<AppNamespace> result = Lists.newArrayList();
     for (String namespaceName : namespaceNames) {
       AppNamespace appNamespace = appNamespaceCache.get(STRING_JOINER.join(appId, namespaceName));
@@ -96,12 +108,16 @@ public class AppNamespaceServiceWithCache implements InitializingBean {
     return publicAppNamespaceCache.get(namespaceName);
   }
 
+  public AppNamespace findPublicNamespaceByNameIgnoreCase(String namespaceName) {
+    Preconditions.checkArgument(!StringUtils.isContainEmpty(namespaceName), "namespaceName must not be empty");
+    return publicAppNamespaceIgnoreCaseCache.get(namespaceName.toLowerCase());
+  }
+
   public List<AppNamespace> findPublicNamespacesByNames(Set<String> namespaceNames) {
     if (namespaceNames == null || namespaceNames.isEmpty()) {
       return Collections.emptyList();
     }
 
-//    return appNamespaceRepository.findByNameInAndIsPublicTrue(namespaceNames);
     List<AppNamespace> result = Lists.newArrayList();
     for (String namespaceName : namespaceNames) {
       AppNamespace appNamespace = publicAppNamespaceCache.get(namespaceName);
@@ -167,10 +183,15 @@ public class AppNamespaceServiceWithCache implements InitializingBean {
 
   private void mergeAppNamespaces(List<AppNamespace> appNamespaces) {
     for (AppNamespace appNamespace : appNamespaces) {
-      appNamespaceCache.put(assembleAppNamespaceKey(appNamespace), appNamespace);
+      String appNamespaceKey = assembleAppNamespaceKey(appNamespace);
+
+      appNamespaceCache.put(appNamespaceKey, appNamespace);
+      appNamespaceIgnoreCaseCache.put(appNamespaceKey.toLowerCase(), appNamespace);
       appNamespaceIdCache.put(appNamespace.getId(), appNamespace);
+
       if (appNamespace.isPublic()) {
         publicAppNamespaceCache.put(appNamespace.getName(), appNamespace);
+        publicAppNamespaceIgnoreCaseCache.put(appNamespace.getName().toLowerCase(), appNamespace);
       }
     }
   }
@@ -208,23 +229,29 @@ public class AppNamespaceServiceWithCache implements InitializingBean {
         appNamespaceIdCache.put(appNamespace.getId(), appNamespace);
         String oldKey = assembleAppNamespaceKey(thatInCache);
         String newKey = assembleAppNamespaceKey(appNamespace);
+
         appNamespaceCache.put(newKey, appNamespace);
+        appNamespaceIgnoreCaseCache.put(newKey.toLowerCase(), appNamespace);
 
         //in case appId or namespaceName changes
         if (!newKey.equals(oldKey)) {
           appNamespaceCache.remove(oldKey);
+          appNamespaceIgnoreCaseCache.remove(oldKey.toLowerCase());
         }
 
         if (appNamespace.isPublic()) {
           publicAppNamespaceCache.put(appNamespace.getName(), appNamespace);
+          publicAppNamespaceIgnoreCaseCache.put(appNamespace.getName().toLowerCase(), appNamespace);
 
           //in case namespaceName changes
           if (!appNamespace.getName().equals(thatInCache.getName()) && thatInCache.isPublic()) {
             publicAppNamespaceCache.remove(thatInCache.getName());
+            publicAppNamespaceIgnoreCaseCache.remove(thatInCache.getName().toLowerCase());
           }
         } else if (thatInCache.isPublic()) {
           //just in case isPublic changes
           publicAppNamespaceCache.remove(thatInCache.getName());
+          publicAppNamespaceIgnoreCaseCache.remove(thatInCache.getName().toLowerCase());
         }
         logger.info("Found AppNamespace changes, old: {}, new: {}", thatInCache, appNamespace);
       }
@@ -242,10 +269,16 @@ public class AppNamespaceServiceWithCache implements InitializingBean {
       if (deleted == null) {
         continue;
       }
-      appNamespaceCache.remove(assembleAppNamespaceKey(deleted));
+
+      String appNamespaceKey = assembleAppNamespaceKey(deleted);
+      appNamespaceCache.remove(appNamespaceKey);
+      appNamespaceIgnoreCaseCache.remove(appNamespaceKey.toLowerCase());
+
       if (deleted.isPublic()) {
         publicAppNamespaceCache.remove(deleted.getName());
+        publicAppNamespaceIgnoreCaseCache.remove(deleted.getName().toLowerCase());
       }
+
       logger.info("Found AppNamespace deleted, {}", deleted);
     }
   }

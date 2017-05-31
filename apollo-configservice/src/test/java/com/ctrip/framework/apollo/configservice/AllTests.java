@@ -8,7 +8,9 @@ import com.ctrip.framework.apollo.configservice.integration.ConfigControllerInte
 import com.ctrip.framework.apollo.configservice.integration.ConfigFileControllerIntegrationTest;
 import com.ctrip.framework.apollo.configservice.integration.NotificationControllerIntegrationTest;
 import com.ctrip.framework.apollo.configservice.integration.NotificationControllerV2IntegrationTest;
+import com.ctrip.framework.apollo.configservice.internal.ConfigCacheTest;
 import com.ctrip.framework.apollo.configservice.service.AppNamespaceServiceWithCacheTest;
+import com.ctrip.framework.apollo.configservice.service.ConfigServiceTest;
 import com.ctrip.framework.apollo.configservice.service.ReleaseMessageServiceWithCacheTest;
 import com.ctrip.framework.apollo.configservice.util.InstanceConfigAuditUtilTest;
 import com.ctrip.framework.apollo.configservice.util.NamespaceUtilTest;
@@ -20,12 +22,12 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ConfigControllerTest.class, NotificationControllerTest.class,
-    ConfigControllerIntegrationTest.class, NotificationControllerIntegrationTest.class,
-    NamespaceUtilTest.class, ConfigFileControllerTest.class,
-    ConfigFileControllerIntegrationTest.class, WatchKeysUtilTest.class,
-    NotificationControllerV2Test.class, NotificationControllerV2IntegrationTest.class,
-    InstanceConfigAuditUtilTest.class, AppNamespaceServiceWithCacheTest.class,
-    ReleaseMessageServiceWithCacheTest.class
+               ConfigControllerIntegrationTest.class, NotificationControllerIntegrationTest.class,
+               NamespaceUtilTest.class, ConfigFileControllerTest.class,
+               ConfigFileControllerIntegrationTest.class, WatchKeysUtilTest.class,
+               NotificationControllerV2Test.class, NotificationControllerV2IntegrationTest.class,
+               InstanceConfigAuditUtilTest.class, AppNamespaceServiceWithCacheTest.class,
+               ReleaseMessageServiceWithCacheTest.class, ConfigCacheTest.class, ConfigServiceTest.class
 })
 public class AllTests {
 

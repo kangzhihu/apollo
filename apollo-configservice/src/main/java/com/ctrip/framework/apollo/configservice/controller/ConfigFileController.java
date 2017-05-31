@@ -18,6 +18,7 @@ import com.ctrip.framework.apollo.biz.entity.ReleaseMessage;
 import com.ctrip.framework.apollo.biz.grayReleaseRule.GrayReleaseRulesHolder;
 import com.ctrip.framework.apollo.biz.message.ReleaseMessageListener;
 import com.ctrip.framework.apollo.biz.message.Topics;
+import com.ctrip.framework.apollo.configservice.internal.NamespaceNameCorrector;
 import com.ctrip.framework.apollo.configservice.util.NamespaceUtil;
 import com.ctrip.framework.apollo.configservice.util.WatchKeysUtil;
 import com.ctrip.framework.apollo.core.ConfigConsts;
@@ -71,15 +72,14 @@ public class ConfigFileController implements ReleaseMessageListener {
 
   @Autowired
   private ConfigController configController;
-
   @Autowired
   private NamespaceUtil namespaceUtil;
-
   @Autowired
   private WatchKeysUtil watchKeysUtil;
-
   @Autowired
   private GrayReleaseRulesHolder grayReleaseRulesHolder;
+  @Autowired
+  private NamespaceNameCorrector namespaceNameCorrector;
 
   public ConfigFileController() {
     localCache = CacheBuilder.newBuilder()
@@ -163,6 +163,7 @@ public class ConfigFileController implements ReleaseMessageListener {
                      HttpServletResponse response) throws IOException {
     //strip out .properties suffix
     namespace = namespaceUtil.filterNamespaceName(namespace);
+    namespace = namespaceNameCorrector.correct(appId, namespace);
 
     if (Strings.isNullOrEmpty(clientIp)) {
       clientIp = tryToGetClientIp(request);
