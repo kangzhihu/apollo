@@ -34,8 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Service
 public class InstanceConfigAuditUtil implements InitializingBean {
   private static final int INSTANCE_CONFIG_AUDIT_MAX_SIZE = 10000;
-  private static final int INSTANCE_CACHE_MAX_SIZE = 10000;
-  private static final int INSTANCE_CONFIG_CACHE_MAX_SIZE = 10000;
   private static final long OFFER_TIME_LAST_MODIFIED_TIME_THRESHOLD_IN_MILLI = TimeUnit.MINUTES.toMillis(10);//10 minutes
   private static final Joiner STRING_JOINER = Joiner.on(ConfigConsts.CLUSTER_NAMESPACE_SEPARATOR);
   private final ExecutorService auditExecutorService;
@@ -52,10 +50,8 @@ public class InstanceConfigAuditUtil implements InitializingBean {
     auditExecutorService = Executors.newSingleThreadExecutor(
         ApolloThreadFactory.create("InstanceConfigAuditUtil", true));
     auditStopped = new AtomicBoolean(false);
-    instanceCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS)
-        .maximumSize(INSTANCE_CACHE_MAX_SIZE).build();
-    instanceConfigReleaseKeyCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.DAYS)
-        .maximumSize(INSTANCE_CONFIG_CACHE_MAX_SIZE).build();
+    instanceCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).build();
+    instanceConfigReleaseKeyCache = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.DAYS).build();
   }
 
   public boolean audit(String appId, String clusterName, String dataCenter, String
