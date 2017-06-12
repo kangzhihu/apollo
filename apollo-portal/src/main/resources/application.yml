@@ -13,11 +13,10 @@ logging:
 endpoints:
   health:
     sensitive: false
+
 management:
   security:
     enabled: false
   health:
     status:
-      order: DOWN, OUT_OF_SERVICE, UNKNOWN, UP 
-
-
+      order: DOWN, OUT_OF_SERVICE, UNKNOWN, UP
