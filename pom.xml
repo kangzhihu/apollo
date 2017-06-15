@@ -11,7 +11,7 @@
 
 	<groupId>com.ctrip.framework.apollo</groupId>
 	<artifactId>apollo</artifactId>
-	<version>0.6.4-SNAPSHOT</version>
+	<version>0.6.4</version>
 	<name>Apollo</name>
 	<packaging>pom</packaging>
 	<description>Ctrip Configuration Center</description>
@@ -150,7 +150,7 @@
 			<dependency>
 				<groupId>com.ctrip.framework</groupId>
 				<artifactId>framework-foundation</artifactId>
-				<version>1.5.2</version>
+				<version>1.6.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.dianping.cat</groupId>
