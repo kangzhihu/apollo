@@ -119,7 +119,7 @@ public class ConfigUtil {
    * @throws ApolloConfigException if env is set
    */
   public Env getApolloEnv() {
-    Env env = EnvUtils.transformEnv(Foundation.server().getEnvType());
+    Env env = EnvUtils.transformEnv(Foundation.server().getEnvFamily().getName());
     if (env == null) {
       String path = isOSWindows() ? "C:\\opt\\settings\\server.properties" :
           "/opt/settings/server.properties";

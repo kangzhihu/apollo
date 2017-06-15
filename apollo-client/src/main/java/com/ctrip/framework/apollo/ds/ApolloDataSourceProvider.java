@@ -44,7 +44,7 @@ public class ApolloDataSourceProvider implements DataSourceProvider, LogEnabled 
       if (m_def == null) {
          ConfigFile file = ConfigService.getConfigFile("datasources", ConfigFileFormat.XML);
          String appId = Foundation.app().getAppId();
-         String envType = Foundation.server().getEnvType();
+         String envType = Foundation.server().getEnvFamily().getName();
 
          if (file != null && file.hasContent()) {
             String content = file.getContent();
