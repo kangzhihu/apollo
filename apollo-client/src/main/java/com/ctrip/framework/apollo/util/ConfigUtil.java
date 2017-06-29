@@ -74,7 +74,7 @@ public class ConfigUtil {
     //Load data center from system property
     cluster = System.getProperty(ConfigConsts.APOLLO_CLUSTER_KEY);
 
-    String env = Foundation.server().getEnvType();
+    String env = Foundation.server().getEnv().getName();
     //LPT and DEV will be treated as a cluster(lower case)
     if (Strings.isNullOrEmpty(cluster) &&
         (Env.DEV.name().equalsIgnoreCase(env) || Env.LPT.name().equalsIgnoreCase(env))
