@@ -62,7 +62,7 @@ if [[ -f $SERVICE_NAME".jar" ]]; then
   rm -rf $SERVICE_NAME".jar"
 fi
 
-printf "$(date) ==== Starting ==== \n"
+printf "\nPortal is staring... ...[0 s]"
 
 ln $PATH_TO_JAR $SERVICE_NAME".jar"
 chmod a+x $SERVICE_NAME".jar"
@@ -77,14 +77,16 @@ then
 fi
 
 declare -i counter=0
-declare -i max_counter=16 # 16*5=80s
+declare -i max_counter=32 # 32*5=160s
 declare -i total_time=0
+declare -i cost_time=0
 
 printf "Waiting for server startup"
 until [[ (( counter -ge max_counter )) || "$(curl -X GET --silent --connect-timeout 1 --max-time 2 --head $SERVER_URL | grep "Coyote")" != "" ]];
 do
-    printf "."
     counter+=1
+    cost_time=counter*5;
+    printf "\nPlease wait, Admin Server is staring... ...[$cost_time s]"
     sleep 5
 done
 
@@ -92,10 +94,13 @@ total_time=counter*5
 
 if [[ (( counter -ge max_counter )) ]];
 then
-    printf "\n$(date) Server failed to start in $total_time seconds!\n"
+    printf "\n Admin Server failed to start in $total_time seconds!"
+    printf "\n Log file location: $LOG_DIR/$SERVICE_NAME.log"
     exit 1;
 fi
 
-printf "\n$(date) Server started in $total_time seconds!\n"
+printf "\nAdmin Server started on port(s): $SERVER_PORT (http)"
+printf "\n Started Admin Server in $total_time seconds!"
+printf "\nLog file location: $LOG_DIR/$SERVICE_NAME.log"
 
 exit 0;

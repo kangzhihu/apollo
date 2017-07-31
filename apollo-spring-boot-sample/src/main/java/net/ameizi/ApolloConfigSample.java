@@ -16,9 +16,4 @@ public class ApolloConfigSample {
         return new JavaConfigSample();
     }
 
-    @Bean
-    public ConfigurationPropertiesSample configurationPropertiesSample() {
-        return new ConfigurationPropertiesSample();
-    }
-
 }
